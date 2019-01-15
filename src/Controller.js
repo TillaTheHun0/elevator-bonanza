@@ -21,10 +21,10 @@ export class ElevatorCtrl {
       this.lifts.push(new Lift(new Elevator(), this.numFloors))
     })
 
+    // subscribe to each lift and log events to main logger
     this.lifts.forEach((lift, i) => {
       let { floor$, direction$, elevatorDoor$ } = lift
 
-      // attach all log lines to main logger
       this.subs.push(
         combineLatest(floor$, direction$, elevatorDoor$)
           .pipe(
@@ -43,6 +43,10 @@ export class ElevatorCtrl {
   }
 
   requestAt (floor) {
-
+    this.lifts
+      .filter(lift => !lift.inMaintenance)
+      .some(lift => {
+        if (lift)
+      })
   }
 }

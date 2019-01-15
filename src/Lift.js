@@ -2,7 +2,7 @@
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 
 import uuid from 'uuid/v4'
-import { distinctUntilChanged, pairwise } from 'rxjs/operators'
+import { distinctUntilChanged, pairwise, tap } from 'rxjs/operators'
 
 const UP = 'GOING UP'
 const DOWN = 'GOING DOWN'
@@ -22,42 +22,50 @@ export class Lift {
 
     // Don't expose our BehaviorSubject apis
     this.floor$ = floorEmitter.asObservable()
-      .pipe(distinctUntilChanged())
+      .pipe(
+        distinctUntilChanged(),
+        tap(curFloor => { this.curFloor = curFloor })
+      )
 
     this.direction$ = directionEmitter.asObservable()
       .pipe(
         pairwise(([prev, cur]) => {
           // State has not changed or in motion, so close the doors. Otherwise open (has arrived)
-          prev === cur || cur !== STOPPED ? this.elevator.close() : this.elevator.open()
+          prev === cur || cur !== STOPPED || this.inMaintenance
+            ? this.elevator.close() : this.elevator.open()
         }),
         distinctUntilChanged()
       )
 
     // Emit door and current floor values
-    this.elevatorDoor$ = this.elevator.door$.map(door => [door, floorEmitter.getValue()])
+    this.elevatorDoor$ = this.elevator.door$.map(door => [door, this.curFloor])
   }
 
   tick () {
-    if (this.elevator.isOpen()) {
-      return
-    }
-
-    let curFloor = floorEmitter.getValue()
-
     let set = (dir, floor) => {
       this.direction$.next(dir)
       this.floor$.next(floor)
     }
 
+    let curFloor = this.curFloor
+
+    // elevator is open or in maintenance
+    if (this.elevator.isOpen() || this.inMaintenance) {
+      set(STOPPED, curFloor)
+      return
+    }
+
     if (curFloor > this.destination) {
-      return set(this.direction$(DOWN), this.floor$.next(curFloor--))
+      this.floorCount++
+      set(this.direction$(DOWN), this.floor$.next(curFloor--))
+    } else if (curFloor < this.destination) {
+      this.floorCount++
+      set(this.direction$.next(UP), this.floor$.next(curFloor++))
+    } else {
+      set(STOPPED, floorEmitter.getValue())
     }
 
-    if (curFloor < this.destination) {
-      return set(this.direction$.next(UP), this.floor$.next(curFloor++))
-    }
-
-    return set(STOPPED, floorEmitter.getValue())
+    this.inMaintenance = this.floorCount >= 100
   }
 
   cleanup () {

@@ -23,4 +23,8 @@ export class Elevator {
   close () {
     this.doorEmitter.next(CLOSED)
   }
+
+  isOpen () {
+    return this.doorEmitter.getValue() === OPEN
+  }
 }
