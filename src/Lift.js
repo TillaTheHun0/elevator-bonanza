@@ -8,6 +8,8 @@ import { UP, DOWN, STOPPED } from './Direction'
 
 const floorEmitter = new BehaviorSubject(1)
 const directionEmitter = new BehaviorSubject(STOPPED)
+
+// Manages moving the elevator and opening/closing it's doors, tracking floors, scheduling maintenance
 export class Lift {
   constructor (elevator, numFloors) {
     this.id = uuid()

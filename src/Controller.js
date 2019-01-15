@@ -6,6 +6,7 @@ import { Subject } from 'rxjs/Subject'
 
 import { UP, DOWN, STOPPED } from './Direction'
 
+// Orchaestrates all of the elevator lifts and logs events emitted from lifts
 export class ElevatorCtrl {
   constructor (numElevators, numFloors) {
     this.numElevators = numElevators

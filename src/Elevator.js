@@ -7,6 +7,8 @@ const OPEN = 1
 const CLOSED = 0
 
 const doorEmitter = new BehaviorSubject(CLOSED)
+
+// Merely mantains state of elevator doors and nothing else
 export class Elevator {
   constructor () {
     this.id = uuid()
