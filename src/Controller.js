@@ -60,6 +60,11 @@ export class ElevatorCtrl {
   requestAt (floorNum) {
     let dispatched = null
 
+    // invalid floor num
+    if (floorNum > this.numFloors || floorNum < 1) {
+      return
+    }
+
     let validLifts = this.lifts
       .filter(lift => !lift.inMaintenance)
       .filter(lift => {
