@@ -1,8 +1,9 @@
 
 import { Lift } from './Lift'
 import { Elevator } from './Elevator'
-import { combineLatest } from 'rxjs/operators'
+import { combineLatest, tap } from 'rxjs/operators'
 import { Subject } from 'rxjs/Subject'
+import { interval } from 'rxjs'
 
 import { UP, DOWN, STOPPED } from './Direction'
 
@@ -17,6 +18,8 @@ export class ElevatorCtrl {
 
     // logger
     this.log = new Subject().tap(line => console.log(line))
+
+    this.loop = interval(1000)
   }
 
   _init () {
@@ -39,6 +42,15 @@ export class ElevatorCtrl {
       // subscribe to logger
       this.subs.push(this.log.subscribe())
     })
+
+    // initiate loop
+    this.subs.push(
+      this.loop.pipe(
+        tap(() => {
+          this.lifts.forEach(lift => lift.tick())
+        })
+      ).subscribe()
+    )
   }
 
   _cleanup () {
