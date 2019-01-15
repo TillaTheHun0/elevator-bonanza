@@ -1,7 +1,7 @@
 {
-  "name": "tilla-boiler",
+  "name": "elevator-bonanza",
   "version": "1.0.0",
-  "description": "My boiler plate for node modules",
+  "description": "Kuali code assignment",
   "main": "index.js",
   "scripts": {
     "build:dev": "npm run build -- -s",
