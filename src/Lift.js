@@ -1,9 +1,10 @@
 
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
+
 import uuid from 'uuid/v4'
 
-const UP = 'UP'
-const DOWN = 'DOWN'
+const UP = 'GOING UP'
+const DOWN = 'GOING DOWN'
 const STOPPED = 'STOPPED'
 
 const floorEmitter = new BehaviorSubject(0)
@@ -18,17 +19,15 @@ export class Lift {
     // Don't expose our BehaviorSubject apis
     this.floor$ = floorEmitter.asObservable()
     this.direction$ = directionEmitter.asObservable()
-  }
-
-  _init () {
-    this.elevator
-  }
-
-  zero () {
-
+    // emit door and current floor values
+    this.elevatorDoor$ = this.elevator.door$.map(door => [door, floorEmitter.getValue()])
   }
 
   tick () {
 
+  }
+
+  cleanup () {
+    this.doorSubscription && this.doorSubscription.unsubscribe()
   }
 }
