@@ -2,19 +2,33 @@
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 import uuid from 'uuid/v4'
 
+const UP = 'UP'
+const DOWN = 'DOWN'
+const STOPPED = 'STOPPED'
+
+const floorEmitter = new BehaviorSubject(0)
+const directionEmitter = new BehaviorSubject(STOPPED)
 export class Lift {
-  constructor (elevator, floors) {
+  constructor (elevator, numFloors) {
     this.id = uuid()
+    this.numFloors = numFloors
 
     this.elevator = elevator
-    this.floors = floors
 
-    this.curFloor = 0
+    // Don't expose our BehaviorSubject apis
+    this.floor$ = floorEmitter.asObservable()
+    this.direction$ = directionEmitter.asObservable()
+  }
 
-    this.floorEmitter = new BehaviorSubject(0)
+  _init () {
+    this.elevator
   }
 
   zero () {
+
+  }
+
+  tick () {
 
   }
 }
