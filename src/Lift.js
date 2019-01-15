@@ -4,9 +4,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 import uuid from 'uuid/v4'
 import { distinctUntilChanged, pairwise, tap } from 'rxjs/operators'
 
-const UP = 'GOING UP'
-const DOWN = 'GOING DOWN'
-const STOPPED = 'STOPPED'
+import { UP, DOWN, STOPPED } from './Direction'
 
 const floorEmitter = new BehaviorSubject(1)
 const directionEmitter = new BehaviorSubject(STOPPED)
@@ -17,6 +15,8 @@ export class Lift {
 
     this.floorCount = 0
     this.inMaintenance = false
+
+    this.destinations = []
 
     this.elevator = elevator
 
@@ -34,7 +34,8 @@ export class Lift {
           prev === cur || cur !== STOPPED || this.inMaintenance
             ? this.elevator.close() : this.elevator.open()
         }),
-        distinctUntilChanged()
+        distinctUntilChanged(),
+        tap(curDirection => { this.curDirection = curDirection })
       )
 
     // Emit door and current floor values
@@ -49,20 +50,25 @@ export class Lift {
 
     let curFloor = this.curFloor
 
+    // cur destination
+    let destination = this.destinations.length ? this.destinations[0] : null
+
     // elevator is open or in maintenance
-    if (this.elevator.isOpen() || this.inMaintenance) {
+    if (this.elevator.isOpen() || this.inMaintenance || !destination) {
       set(STOPPED, curFloor)
       return
     }
 
-    if (curFloor > this.destination) {
+    if (curFloor > destination) {
       this.floorCount++
       set(this.direction$(DOWN), this.floor$.next(curFloor--))
-    } else if (curFloor < this.destination) {
+    } else if (curFloor < destination) {
       this.floorCount++
       set(this.direction$.next(UP), this.floor$.next(curFloor++))
     } else {
       set(STOPPED, floorEmitter.getValue())
+      // if destinations remove the front one
+      this.destinations.length && this.destinations.shift()
     }
 
     this.inMaintenance = this.floorCount >= 100
@@ -73,6 +79,8 @@ export class Lift {
   }
 
   goToFloor (floorNum) {
-    this.destination = floorNum
+    // destinations is a stack, in case the elevator is told to make an intermediate stop on the way
+    // it will make that stop, pop off the destination, then continue to the original destination
+    this.destinations.unshift(floorNum)
   }
 }

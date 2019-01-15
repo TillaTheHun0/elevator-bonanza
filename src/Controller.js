@@ -2,7 +2,9 @@
 import { Lift } from './Lift'
 import { Elevator } from './Elevator'
 import { combineLatest } from 'rxjs/operators'
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs/Subject'
+
+import { UP, DOWN, STOPPED } from './Direction'
 
 export class ElevatorCtrl {
   constructor (numElevators, numFloors) {
@@ -42,11 +44,24 @@ export class ElevatorCtrl {
     this.subs.forEach(sub => sub.unsubscribe())
   }
 
-  requestAt (floor) {
-    this.lifts
+  requestAt (floorNum) {
+    let dispatched = null
+
+    let validLifts = this.lifts
       .filter(lift => !lift.inMaintenance)
-      .some(lift => {
-        if (lift)
+      .filter(lift => {
+        return floorNum === lift.curFloor ||
+          (floorNum - lift.curFloor >= 1 && lift.curDirection === UP) ||
+          (floorNum - lift.curFloor <= 1 && lift.curDirection === DOWN) ||
+          lift.direction === STOPPED
       })
+
+    let distances = validLifts.map(lift => Math.abs(floorNum - lift.curFloor))
+
+    let min = Math.min(...distances)
+
+    dispatched = validLifts[distances.findIndex(distance => distance === min)]
+
+    dispatched && dispatched.goToFloor(floorNum)
   }
 }
