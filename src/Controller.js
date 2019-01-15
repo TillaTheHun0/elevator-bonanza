@@ -33,7 +33,6 @@ export class ElevatorCtrl {
             }
           ).subscribe()
       )
-
       // subscribe to logger
       this.subs.push(this.log.subscribe())
     })
